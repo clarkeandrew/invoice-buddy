@@ -47,6 +47,9 @@ jobs:
       - name: Type-check frontend
         run: bunx tsc --noEmit
 
+      - name: Frontend tests
+        run: bun run test
+
       - name: Rust format
         run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
 

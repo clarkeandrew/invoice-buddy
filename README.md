@@ -24,7 +24,7 @@ Requires [Bun](https://bun.sh), [Rust](https://rustup.rs), [just](https://just.s
 just install   # install dependencies
 just dev       # run the app with hot reload
 just check     # type-check frontend and Rust
-just test      # run the Rust tests
+just test      # run the frontend and Rust tests
 just build     # build the app bundle for this machine
 ```
 
