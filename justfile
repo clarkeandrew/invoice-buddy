@@ -23,8 +23,9 @@ check:
     bunx tsc --noEmit
     cargo check --manifest-path {{cargo_manifest}}
 
-# Run the Rust tests
+# Run the frontend and Rust tests
 test:
+    bun run test
     cargo test --manifest-path {{cargo_manifest}}
 
 # Format and lint the Rust code
