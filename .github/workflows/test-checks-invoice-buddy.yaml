@@ -48,6 +48,16 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      # tauri build refuses mismatched npm/Rust Tauri versions, but nothing else
+      # checks them before release. tauri info reports the mismatch without failing.
+      - name: Tauri npm and Rust versions match
+        run: |
+          bun tauri info 2>&1 | tee tauri-info.txt
+          if grep -q "version mismatched" tauri-info.txt; then
+            echo "::error::Tauri npm packages and Rust crates are on different minor versions. Align them before releasing."
+            exit 1
+          fi
+
       - name: Type-check frontend
         run: bunx tsc --noEmit
 
