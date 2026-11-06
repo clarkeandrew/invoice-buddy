@@ -2,7 +2,9 @@
 
 A fast, local-first desktop app for creating and managing invoices. Built with Tauri, React, and SQLite — all data stays on your machine.
 
-**Download:** https://clarkeandrew.github.io/invoice-buddy/
+## Install
+
+Download the installer for macOS, Windows or Linux from **[the Invoice Buddy site](https://clarkeandrew.github.io/invoice-buddy/)**, or from [GitHub Releases](https://github.com/clarkeandrew/invoice-buddy/releases/latest). The builds aren't signed with an Apple or Microsoft certificate yet, so the site explains how to get past the warning the first time you open the app. After that, the app updates itself.
 
 ## Features
 
@@ -39,7 +41,7 @@ just version 0.2.0   # set the version, then commit and merge to main
 just release         # on main: tag v0.2.0 and push it
 ```
 
-Pushing the tag builds macOS, Windows and Linux bundles in GitHub Actions and publishes them as a GitHub Release.
+Pushing the tag builds macOS, Windows and Linux bundles in GitHub Actions and publishes them as a GitHub Release. The [download site](https://clarkeandrew.github.io/invoice-buddy/) links to the latest release on its own, and installed apps offer the update the next time they start. The site itself is in `docs/` and deploys when that folder changes on `main`.
 
 ## License
 
