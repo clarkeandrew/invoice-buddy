@@ -1,0 +1,38 @@
+import Modal from "./Modal";
+import Button from "./Button";
+
+interface ConfirmDialogProps {
+  open: boolean;
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: "danger" | "primary";
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+export default function ConfirmDialog({
+  open,
+  title = "Confirm",
+  message,
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  variant = "danger",
+  onConfirm,
+  onCancel,
+}: ConfirmDialogProps) {
+  return (
+    <Modal open={open} onClose={onCancel} title={title}>
+      <p className="text-sm text-gray-600 mb-6">{message}</p>
+      <div className="flex justify-end gap-3">
+        <Button variant="secondary" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+        <Button variant={variant} onClick={onConfirm}>
+          {confirmLabel}
+        </Button>
+      </div>
+    </Modal>
+  );
+}

@@ -1,0 +1,159 @@
+name: Release
+
+# Cut a release by pushing a version tag, e.g. `git tag v0.2.0 && git push origin v0.2.0`.
+# The tag must match the version in tauri.conf.json, Cargo.toml and package.json
+# (set them with `scripts/set-version.sh 0.2.0` and merge that first).
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Check tag matches app version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          want="${TAG#v}"
+          tauri=$(jq -r '.version' src-tauri/tauri.conf.json)
+          npm=$(jq -r '.version' package.json)
+          cargo=$(sed -n '/^\[package\]/,/^\[/{s/^version = "\(.*\)"/\1/p}' src-tauri/Cargo.toml)
+          echo "tag=$want tauri.conf.json=$tauri package.json=$npm Cargo.toml=$cargo"
+          if [ "$tauri" != "$want" ] || [ "$npm" != "$want" ] || [ "$cargo" != "$want" ]; then
+            echo "::error::Tag $TAG does not match the app version. Run scripts/set-version.sh $want, merge it, then tag."
+            exit 1
+          fi
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev librsvg2-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      - name: Type-check frontend
+        run: bunx tsc --noEmit
+
+      - name: Rust tests
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+
+  create-release:
+    name: Create draft release
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      release-id: ${{ steps.create.outputs.id }}
+    steps:
+      - id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          NOTES: |
+            ## Installing
+
+            These builds are unsigned.
+
+            - **macOS:** if macOS says the app is damaged, run `xattr -cr "/Applications/Invoice Buddy.app"` once after copying it in.
+            - **Windows:** on the SmartScreen prompt, choose *More info → Run anyway*.
+        run: |
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+            --title "Invoice Buddy $TAG" --generate-notes --notes "$NOTES"
+          id=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id")
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build (${{ matrix.label }})
+    needs: create-release
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            label: macos-arm64
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            label: windows-x64
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            label: linux-x64
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev librsvg2-dev patchelf
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: ${{ matrix.target }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.release-id }}
+          tauriScript: bun tauri
+          args: --target ${{ matrix.target }}
+
+  publish:
+    name: Publish release
+    needs: [create-release, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
