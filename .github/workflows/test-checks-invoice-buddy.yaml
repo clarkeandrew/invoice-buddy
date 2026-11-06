@@ -1,10 +1,14 @@
 name: "[Test] Checks"
 
+# Also runs on main so the apt and Rust caches are saved there, where every
+# PR branch can restore them. A PR branch can't read another PR's caches.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
-  group: checks-${{ github.event.pull_request.number }}
+  group: checks-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
