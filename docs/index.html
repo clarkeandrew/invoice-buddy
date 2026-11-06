@@ -98,8 +98,8 @@
           <p>The installers aren't signed with an Apple or Microsoft certificate yet, so your computer will warn you the first time.</p>
           <ul>
             <li><strong>macOS:</strong> move it to Applications and open it. When macOS says it can't verify the app, choose <em>Done</em>, then go to <em>System Settings → Privacy &amp; Security</em> and click <em>Open Anyway</em>. You only need to do this once.</li>
-            <li><strong>Windows:</strong> on the SmartScreen prompt, choose <em>More info</em>, then <em>Run anyway</em>.</li>
-            <li><strong>Linux:</strong> make the AppImage executable with <code>chmod +x</code>, then run it.</li>
+            <li><strong>Windows:</strong> on the SmartScreen prompt, choose <em>More info</em>, then <em>Run anyway</em>. If Windows says <em>Smart App Control</em> blocked it, the app can't be installed while Smart App Control is on. Turning it off in Windows Security can't be undone without resetting Windows, so only do that if you're comfortable with it.</li>
+            <li><strong>Linux:</strong> make the AppImage executable with <code>chmod +x</code>, then run it. If it fails with an error about <code>libfuse.so.2</code>, install FUSE 2: <code>sudo apt install libfuse2t64</code> on Ubuntu 24.04 and later, or <code>libfuse2</code> on 22.04. You need Ubuntu 22.04, Debian 12, Fedora 36 or newer. If the window opens blank, start it with <code>WEBKIT_DISABLE_DMABUF_RENDERER=1</code>.</li>
           </ul>
         </div>
       </section>

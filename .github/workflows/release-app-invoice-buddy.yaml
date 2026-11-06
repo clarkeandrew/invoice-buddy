@@ -86,7 +86,8 @@ jobs:
             These builds are unsigned.
 
             - **macOS:** move the app to Applications and open it. When macOS says it can't verify the app, choose *Done*, then go to *System Settings → Privacy & Security* and click *Open Anyway*. You only need to do this once.
-            - **Windows:** on the SmartScreen prompt, choose *More info → Run anyway*.
+            - **Windows:** on the SmartScreen prompt, choose *More info → Run anyway*. If *Smart App Control* blocks it, the app can't be installed while Smart App Control is on.
+            - **Linux:** make the AppImage executable (`chmod +x`) and run it. If it fails with an error about `libfuse.so.2`, install FUSE 2: `sudo apt install libfuse2t64` on Ubuntu 24.04+, or `libfuse2` on 22.04. Needs Ubuntu 22.04, Debian 12, Fedora 36 or newer. If the window opens blank, start it with `WEBKIT_DISABLE_DMABUF_RENDERER=1`.
         run: |
           # Take the id from the create response: listing releases straight
           # after creating a draft can miss it.
