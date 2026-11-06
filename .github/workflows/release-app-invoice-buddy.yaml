@@ -88,9 +88,16 @@ jobs:
             - **macOS:** if macOS says the app is damaged, run `xattr -cr "/Applications/Invoice Buddy.app"` once after copying it in.
             - **Windows:** on the SmartScreen prompt, choose *More info → Run anyway*.
         run: |
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
-            --title "Invoice Buddy $TAG" --generate-notes --notes "$NOTES"
-          id=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id")
+          # Take the id from the create response: listing releases straight
+          # after creating a draft can miss it.
+          id=$(gh api "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$TAG" -f name="Invoice Buddy $TAG" -f body="$NOTES" \
+            -F draft=true -F generate_release_notes=true --jq .id)
+          if [ -z "$id" ]; then
+            echo "::error::Creating the draft release returned no id."
+            exit 1
+          fi
+          echo "Created draft release $id"
           echo "id=$id" >> "$GITHUB_OUTPUT"
 
   build:
