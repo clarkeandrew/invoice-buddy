@@ -1,0 +1,35 @@
+name: "[Test] History"
+
+# Fails a PR whose own commits include a merge, until it is rebased onto main.
+on:
+  pull_request:
+
+concurrency:
+  group: history-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  no-merge-commits:
+    name: No merge commits
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      # Only the PR's own commits: on its head and not on main as it is now.
+      - env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          merges=$(git rev-list --merges "$BASE..$HEAD")
+          if [ -n "$merges" ]; then
+            echo "::error::This branch contains merge commits. Rebase it onto main (Update branch > Update with rebase, or git rebase origin/main) and push again."
+            git log --oneline --merges "$BASE..$HEAD"
+            exit 1
+          fi
+          echo "$(git rev-list --count "$BASE..$HEAD") commit(s), none of them merges."
