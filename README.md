@@ -2,6 +2,8 @@
 
 A fast, local-first desktop app for creating and managing invoices. Built with Tauri, React, and SQLite — all data stays on your machine.
 
+**Download:** https://clarkeandrew.github.io/invoice-buddy/
+
 ## Features
 
 - Create and manage clients, invoices, and line items
