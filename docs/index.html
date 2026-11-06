@@ -3,116 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invoice Buddy</title>
+  <title>Invoice Buddy: simple, local-first invoicing for your desktop</title>
+  <meta name="description" content="Invoice Buddy is a free, open-source desktop app for creating and managing invoices. Your data stays on your machine. For macOS, Windows and Linux.">
+  <link rel="icon" type="image/png" href="icon.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --bg: #0f172a; --surface: #1e293b; --primary: #3b82f6; --primary-hover: #2563eb; --text: #f1f5f9; --muted: #94a3b8; --border: #334155; }
+    [hidden] { display: none !important; }
+    :root {
+      --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --muted: #475569;
+      --border: #e2e8f0; --primary: #1d4ed8; --primary-hover: #1e40af; --accent: #16a34a;
+    }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-    .container { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; }
+    .container { max-width: 52rem; margin: 0 auto; padding: 0 1.5rem; }
+    a { color: var(--primary); }
+    a:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; border-radius: 0.5rem; }
 
-    header { padding: 4rem 0 2rem; text-align: center; }
-    header h1 { font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem; }
-    header p { font-size: 1.25rem; color: var(--muted); max-width: 500px; margin: 0 auto; }
-    .badge { display: inline-block; margin-top: 1rem; padding: 0.25rem 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 9999px; font-size: 0.875rem; color: var(--muted); }
+    header { padding: 4rem 0 2.5rem; text-align: center; }
+    header img { width: 6rem; height: 6rem; }
+    h1 { font-size: clamp(2.25rem, 6vw, 3rem); font-weight: 800; letter-spacing: -0.02em; margin-top: 1rem; }
+    .tagline { font-size: 1.2rem; color: var(--muted); max-width: 34rem; margin: 0.5rem auto 0; }
+    .version { display: inline-block; margin-top: 1.25rem; padding: 0.2rem 0.75rem; border: 1px solid var(--border); border-radius: 9999px; background: var(--surface); font-size: 0.875rem; color: var(--muted); }
 
-    .downloads { padding: 2rem 0 4rem; }
-    .downloads h2 { text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; text-align: center; text-decoration: none; color: var(--text); transition: border-color 0.2s; }
-    .card:hover { border-color: var(--primary); }
-    .card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .card h3 { font-size: 1.125rem; margin-bottom: 0.25rem; }
-    .card p { font-size: 0.875rem; color: var(--muted); }
+    h2 { font-size: 1.4rem; margin-bottom: 1rem; }
+    section { padding: 1.5rem 0 2.5rem; }
 
-    .features { padding: 2rem 0 4rem; }
-    .features h2 { text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; }
-    .feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
-    .feature { background: var(--surface); border-radius: 0.75rem; padding: 1.5rem; }
-    .feature h3 { font-size: 1rem; margin-bottom: 0.5rem; }
-    .feature p { font-size: 0.875rem; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+    .platform { background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .platform h3 { font-size: 1.15rem; }
+    .platform .detail { font-size: 0.9rem; color: var(--muted); }
+    .button { display: inline-block; margin-top: 0.75rem; padding: 0.6rem 1rem; border-radius: 0.5rem; background: var(--primary); color: #fff; font-weight: 600; text-align: center; text-decoration: none; }
+    .button:hover { background: var(--primary-hover); }
+    .alt { font-size: 0.875rem; margin-top: 0.5rem; color: var(--muted); }
 
-    footer { padding: 2rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.875rem; }
-    footer a { color: var(--primary); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem 2rem; list-style: none; }
+    .features strong { display: block; }
+    .features span { color: var(--muted); font-size: 0.95rem; }
+
+    .note { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0.5rem; padding: 1rem 1.25rem; font-size: 0.95rem; }
+    .note p + p, .note ul { margin-top: 0.5rem; }
+    .note ul { padding-left: 1.25rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; background: #f1f5f9; padding: 0.1rem 0.3rem; border-radius: 0.25rem; overflow-wrap: anywhere; }
+
+    footer { padding: 2rem 0 3rem; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 0.9rem; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
+      <img src="icon.png" alt="" width="96" height="96">
       <h1>Invoice Buddy</h1>
-      <p>A fast, local-first desktop app for creating and managing invoices.</p>
-      <span class="badge">Latest: {{VERSION}}</span>
+      <p class="tagline">Create, send and keep track of invoices from a small desktop app. Your data stays on your machine.</p>
+      <p class="version" id="version" hidden></p>
     </header>
 
-    <section class="downloads">
-      <h2>Download</h2>
-      <div class="grid" id="download-cards">
-        <a class="card" id="macos-link" href="#">
-          <div class="icon">&#63743;</div>
-          <h3>macOS</h3>
-          <p>Apple Silicon (arm64)</p>
-        </a>
-        <a class="card" id="windows-link" href="#">
-          <div class="icon">&#8862;</div>
-          <h3>Windows</h3>
-          <p>64-bit (x64)</p>
-        </a>
-        <a class="card" id="linux-link" href="#">
-          <div class="icon">&#9881;</div>
-          <h3>Linux</h3>
-          <p>64-bit (x64) .deb / AppImage</p>
-        </a>
-      </div>
-    </section>
+    <main>
+      <section aria-labelledby="download-heading">
+        <h2 id="download-heading">Download</h2>
+        <div class="grid">
+          <div class="platform">
+            <h3>macOS</h3>
+            <p class="detail">Apple Silicon (M1 and later)</p>
+            <a class="button" id="dl-macos" href="https://github.com/clarkeandrew/invoice-buddy/releases/latest">Download .dmg</a>
+          </div>
+          <div class="platform">
+            <h3>Windows</h3>
+            <p class="detail">Windows 10 and 11, 64-bit</p>
+            <a class="button" id="dl-windows" href="https://github.com/clarkeandrew/invoice-buddy/releases/latest">Download installer</a>
+            <p class="alt" id="alt-windows" hidden></p>
+          </div>
+          <div class="platform">
+            <h3>Linux</h3>
+            <p class="detail">64-bit (x86_64)</p>
+            <a class="button" id="dl-linux" href="https://github.com/clarkeandrew/invoice-buddy/releases/latest">Download AppImage</a>
+            <p class="alt" id="alt-linux" hidden></p>
+          </div>
+        </div>
+      </section>
 
-    <section class="features">
-      <h2>Features</h2>
-      <div class="feature-list">
-        <div class="feature">
-          <h3>Local-First</h3>
-          <p>All data stays on your machine in a local SQLite database. No cloud, no accounts.</p>
+      <section aria-labelledby="features-heading">
+        <h2 id="features-heading">What it does</h2>
+        <ul class="features">
+          <li><strong>Customers and invoices</strong><span>Keep your customers in one place and raise invoices with line items, VAT and notes.</span></li>
+          <li><strong>PDF export</strong><span>Save or open any invoice as a PDF with your logo and company details.</span></li>
+          <li><strong>Duplicate an invoice</strong><span>Repeat work? Copy a past invoice and only change what's different.</span></li>
+          <li><strong>Local and private</strong><span>Everything is stored in a database on your computer. No account, no cloud.</span></li>
+          <li><strong>Updates itself</strong><span>The app tells you when a new version is out and installs it for you.</span></li>
+          <li><strong>Free and open source</strong><span>MIT licensed. The code is on GitHub.</span></li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="install-heading">
+        <h2 id="install-heading">Opening it for the first time</h2>
+        <div class="note">
+          <p>The installers aren't signed with an Apple or Microsoft certificate yet, so your computer will warn you the first time.</p>
+          <ul>
+            <li><strong>macOS:</strong> if it says the app is damaged, move it to Applications, then run <code>xattr -cr "/Applications/Invoice Buddy.app"</code> in Terminal.</li>
+            <li><strong>Windows:</strong> on the SmartScreen prompt, choose <em>More info</em>, then <em>Run anyway</em>.</li>
+            <li><strong>Linux:</strong> make the AppImage executable with <code>chmod +x</code>, then run it.</li>
+          </ul>
         </div>
-        <div class="feature">
-          <h3>PDF Export</h3>
-          <p>Generate professional PDF invoices with one click.</p>
-        </div>
-        <div class="feature">
-          <h3>Fast &amp; Lightweight</h3>
-          <p>Built with Tauri and Rust for a small footprint and instant startup.</p>
-        </div>
-        <div class="feature">
-          <h3>Cross-Platform</h3>
-          <p>Available on macOS, Windows, and Linux.</p>
-        </div>
-      </div>
-    </section>
+      </section>
+    </main>
 
     <footer>
-      <p>Open source on <a id="repo-link" href="#">GitHub</a></p>
+      <p><a href="https://github.com/clarkeandrew/invoice-buddy">Source code on GitHub</a> · <a href="https://github.com/clarkeandrew/invoice-buddy/releases">All releases</a> · MIT licence</p>
     </footer>
   </div>
 
   <script>
-    // Auto-detect repo from GitHub Pages URL and build download links
-    (function() {
-      const host = window.location.hostname;
-      const path = window.location.pathname.replace(/\/$/, '');
-      let owner = '', repo = '';
-
-      if (host.endsWith('.github.io')) {
-        owner = host.replace('.github.io', '');
-        repo = path.split('/')[1] || host.replace('.github.io', '');
+    // Point each button at the installer in the latest release. If the API
+    // can't be reached, the buttons keep linking to the releases page.
+    (async function () {
+      let release;
+      try {
+        const res = await fetch("https://api.github.com/repos/clarkeandrew/invoice-buddy/releases/latest");
+        if (!res.ok) return;
+        release = await res.json();
+      } catch {
+        return;
       }
 
-      if (!owner || !repo) return;
+      const assets = release.assets || [];
+      const find = (test) => assets.find((a) => test(a.name));
+      const link = (asset) => {
+        const a = document.createElement("a");
+        a.href = asset.browser_download_url;
+        a.textContent = "." + asset.name.split(".").pop();
+        return a;
+      };
+      const showAlt = (id, prefix, links, suffix = "") => {
+        const alt = document.getElementById(id);
+        alt.append(prefix);
+        links.forEach((a, i) => alt.append(...(i ? [" / ", a] : [a])));
+        alt.append(suffix);
+        alt.hidden = false;
+      };
 
-      const repoUrl = 'https://github.com/' + owner + '/' + repo;
-      const releaseUrl = repoUrl + '/releases/latest';
+      const version = document.getElementById("version");
+      version.textContent = `Latest version: ${release.tag_name}`;
+      version.hidden = false;
 
-      document.getElementById('repo-link').href = repoUrl;
-      document.getElementById('macos-link').href = releaseUrl;
-      document.getElementById('windows-link').href = releaseUrl;
-      document.getElementById('linux-link').href = releaseUrl;
+      const mac = find((n) => n.endsWith(".dmg"));
+      if (mac) document.getElementById("dl-macos").href = mac.browser_download_url;
+
+      const exe = find((n) => n.endsWith("-setup.exe"));
+      const msi = find((n) => n.endsWith(".msi"));
+      const win = exe || msi;
+      if (win) document.getElementById("dl-windows").href = win.browser_download_url;
+      if (exe && msi) showAlt("alt-windows", "Or the ", [link(msi)], " package");
+
+      const appImage = find((n) => n.endsWith(".AppImage"));
+      if (appImage) document.getElementById("dl-linux").href = appImage.browser_download_url;
+      const others = [find((n) => n.endsWith(".deb")), find((n) => n.endsWith(".rpm"))].filter(Boolean);
+      if (others.length) showAlt("alt-linux", "Or as ", others.map(link));
     })();
   </script>
 </body>
